@@ -1,0 +1,22 @@
+# MySQL Master配置文件
+
+[mysqld]
+server-id=1
+log-bin=mysql-bin-1.log
+binlog-format=ROW
+gtid-mode=ON
+enforce-gtid-consistency=ON
+log-slave-updates=ON
+binlog-checksum=NONE
+master-info-repository=TABLE
+relay-log-info-repository=TABLE
+transaction-write-set-extraction=XXHASH64
+
+# 组复制配置
+loose-group-replication-group-name=aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee
+loose-group-replication-start-on-boot=OFF
+loose-group-replication-local-address=mysql-master:33061
+loose-group-replication-group-seeds=mysql-master:33061,mysql-slave-1:33061,mysql-slave-2:33061
+loose-group-replication-bootstrap-group=OFF
+loose-group-replication-single-primary-mode=ON
+loose-group-replication-enforce-update-everywhere-checks=OFF

@@ -1,0 +1,84 @@
+version: '3.8'
+
+services:
+  mysql-master:
+    image: mysql:8.0.39
+    container_name: mysql-master
+    hostname: mysql-master
+    command: ["mysqld"]
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: mydb
+    volumes:
+      - mysql-master-data:/var/lib/mysql
+      - ./mysql-init-scripts:/docker-entrypoint-initdb.d
+      - ./mysql-config/mysql-master.cnf:/etc/mysql/conf.d/mysql-master.cnf
+    ports:
+      - "3306:3306"
+      - "33061:33061"
+    networks:
+      - mysql-mgr-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p$$MYSQL_ROOT_PASSWORD"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  mysql-slave-1:
+    image: mysql:8.0.39
+    container_name: mysql-slave-1
+    hostname: mysql-slave-1
+    command: ["mysqld"]
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: mydb
+    volumes:
+      - mysql-slave-1-data:/var/lib/mysql
+      - ./mysql-init-scripts:/docker-entrypoint-initdb.d
+      - ./mysql-config/mysql-slave-1.cnf:/etc/mysql/conf.d/mysql-slave-1.cnf
+    ports:
+      - "3307:3306"
+      - "33062:33061"
+    networks:
+      - mysql-mgr-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p$$MYSQL_ROOT_PASSWORD"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    depends_on:
+      - mysql-master
+
+  mysql-slave-2:
+    image: mysql:8.0.39
+    container_name: mysql-slave-2
+    hostname: mysql-slave-2
+    command: ["mysqld"]
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: mydb
+    volumes:
+      - mysql-slave-2-data:/var/lib/mysql
+      - ./mysql-init-scripts:/docker-entrypoint-initdb.d
+      - ./mysql-config/mysql-slave-2.cnf:/etc/mysql/conf.d/mysql-slave-2.cnf
+    ports:
+      - "3308:3306"
+      - "33063:33061"
+    networks:
+      - mysql-mgr-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p$$MYSQL_ROOT_PASSWORD"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    depends_on:
+      - mysql-master
+
+networks:
+  mysql-mgr-network:
+    driver: bridge
+
+volumes:
+  mysql-master-data:
+  mysql-slave-1-data:
+  mysql-slave-2-data:
