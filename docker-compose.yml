@@ -74,6 +74,33 @@ services:
     depends_on:
       - mysql-master
 
+  proxysql:
+    image: proxysql/proxysql:2.6.1
+    container_name: proxysql
+    hostname: proxysql
+    volumes:
+      - ./proxysql-config/proxysql.cnf:/etc/proxysql.cnf
+      - ./proxysql-init-scripts:/etc/proxysql
+      - proxysql-data:/var/lib/proxysql
+    ports:
+      - "6032:6032"  # ProxySQL Admin接口
+      - "6033:6033"  # ProxySQL MySQL接口
+    networks:
+      - mysql-mgr-network
+    depends_on:
+      mysql-master:
+        condition: service_healthy
+      mysql-slave-1:
+        condition: service_healthy
+      mysql-slave-2:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "mysql", "-h", "127.0.0.1", "-P", "6032", "-uradmin", "-pradmin", "-e", "SELECT 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      
 networks:
   mysql-mgr-network:
     driver: bridge
@@ -82,3 +109,4 @@ volumes:
   mysql-master-data:
   mysql-slave-1-data:
   mysql-slave-2-data:
+  proxysql-data:
